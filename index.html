@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج التواصل - استمارة تخويل العجلات</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #c0c0c0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            word-break: keep-all;
+            word-wrap: normal;
+            overflow-wrap: normal;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           نموذج التواصل (Contact Form) - يظهر دائماً على الشاشة
+           ═══════════════════════════════════════════════════════════════ */
+        .contact-section {
+            width: 190mm;
+            max-width: 95vw;
+            background: linear-gradient(180deg, #2a3d5a 0%, #1a2d4a 100%);
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-section::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1.5px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .contact-title {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .contact-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .contact-field label {
+            color: rgba(255,255,255,0.9);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .contact-field input,
+        .contact-field textarea,
+        .contact-field select {
+            padding: 10px 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .contact-field input::placeholder,
+        .contact-field textarea::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .contact-field input:focus,
+        .contact-field textarea:focus,
+        .contact-field select:focus {
+            outline: none;
+            border-color: #8b1538;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .contact-field textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .contact-field select {
+            cursor: pointer;
+        }
+
+        .contact-field select option {
+            background: #1a2d4a;
+            color: white;
+        }
+
+        .contact-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-btn {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .contact-btn.send {
+            background: #8b1538;
+            color: white;
+        }
+
+        .contact-btn.send:hover {
+            background: #a01a42;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139,21,56,0.4);
+        }
+
+        .contact-btn.clear {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .contact-btn.clear:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .contact-btn.preview {
+            background: #4a7c59;
+            color: white;
+        }
+
+        .contact-btn.preview:hover {
+            background: #5a8c69;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74,124,89,0.4);
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            color: #4CAF50;
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(76,175,80,0.3);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Modal المعاينة - يظهر داخل نفس الصفحة
+           ═══════════════════════════════════════════════════════════════ */
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9998;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 20px;
+            overflow-y: auto;
+        }
+
+        .preview-overlay.active {
+            display: flex;
+        }
+
+        .preview-container {
+            position: relative;
+            z-index: 9999;
+            margin-top: 20px;
+        }
+
+        .preview-close {
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            background: #8b1538;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .preview-form {
+            display: flex !important;
+            width: 190mm;
+            min-height: 277mm;
+            background: white;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           الاستمارة الإلكترونية - مخفية على الشاشة، تظهر فقط عند الطباعة
+           ═══════════════════════════════════════════════════════════════ */
+        .form-container {
+            display: none;
+            width: 190mm;
+            min-height: 277mm;
+            max-height: 277mm;
+            background: white;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            padding: 0;
+            margin: 0 auto;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(180deg, #4a5d7a 0%, #3a4d6a 50%, #2a3d5a 100%);
+            height: 90px;
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 15px;
+            position: relative;
+            border-bottom: 3px solid #8b1538;
+            border-radius: 0 0 12px 12px;
+            margin: 0 2px;
+            flex-shrink: 0;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1.5px dashed rgba(255,255,255,0.4);
+            border-radius: 0 0 10px 10px;
+            pointer-events: none;
+        }
+
+        .header-en {
+            text-align: left;
+            line-height: 1.3;
+            z-index: 2;
+            direction: ltr;
+        }
+
+        .header-en div {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: white;
+        }
+
+        .header-ar {
+            text-align: right;
+            line-height: 1.3;
+            z-index: 2;
+            direction: rtl;
+        }
+
+        .header-ar div {
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .logo-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 8px;
+            z-index: 10;
+        }
+
+        .logo-img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .form-title {
+            text-align: center;
+            padding: 4px;
+            margin: 3px 15px 2px 15px;
+            border-bottom: 2px solid #ccc;
+            flex-shrink: 0;
+        }
+
+        .form-title h1 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #333;
+            letter-spacing: 0.5px;
+            text-align: center;
+            word-break: keep-all;
+            white-space: nowrap;
+        }
+
+        .content {
+            padding: 10px 20px 15px 20px;
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .watermark-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            opacity: 0.06;
+            pointer-events: none;
+            width: 70%;
+            height: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .watermark-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .top-section {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 10px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .photo-box {
+            width: 75px;
+            height: 95px;
+            border: 2px solid #333;
+            background: #f8f8f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .photo-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .photo-preview {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .fields-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-top: 1px;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            width: 100%;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #333;
+            white-space: nowrap;
+            word-break: keep-all;
+        }
+
+        .field-input {
+            border: 2px solid #333;
+            background: white;
+            padding: 2px 5px;
+            font-family: 'Cairo', sans-serif;
+            border-radius: 5px;
+            font-size: 12px;
+            height: 30px;
+            text-align: center;
+            word-break: keep-all;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: #2a3d5a;
+        }
+
+        .row-fullname .field-input, .row-department .field-input {
+            flex: 1;
+            width: auto;
+        }
+
+        .row-job-mobile {
+            display: flex;
+            gap: 12px;
+        }
+
+        .job-group, .mobile-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+        }
+
+        .job-group .field-input, .mobile-group .field-input {
+            flex: 1;
+            width: auto;
+        }
+
+        .vehicle-row {
+            display: flex;
+            gap: 2px;
+            margin: 4px 0;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .vehicle-group {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .vehicle-group .field-label {
+            font-size: 10px;
+            word-break: keep-all;
+        }
+
+        .vehicle-group .field-input {
+            flex: 1;
+            height: 24px;
+            min-width: 45px;
+            font-size: 10px;
+            text-align: center;
+            word-break: keep-all;
+        }
+
+        .chassis-row {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin: 6px 0;
+            flex-shrink: 0;
+        }
+
+        .chassis-row .field-input {
+            flex: 1;
+            width: auto;
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+            padding: 2px 0;
+            flex-shrink: 0;
+        }
+
+        .auth-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #333;
+            word-break: keep-all;
+        }
+
+        .auth-options {
+            display: flex;
+            gap: 15px;
+        }
+
+        .auth-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .auth-option input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid #333;
+            cursor: pointer;
+        }
+
+        .auth-option label {
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            word-break: keep-all;
+        }
+
+        .notice-section {
+            margin: 6px 0;
+        }
+
+        .notice-label {
+            font-size: 8px;
+            font-weight: 700;
+            color: #333;
+            text-align: right;
+            margin: 6px auto 2px auto;
+            width: 95%;
+            word-break: keep-all;
+            unicode-bidi: normal;
+            direction: rtl;
+        }
+
+        .notice-label strong {
+            font-weight: 800;
+        }
+
+        .scope-input {
+            width: 85%;
+            height: 28px;
+            border: 2px solid #333;
+            margin: 0 auto 6px auto;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            background: white;
+            flex-shrink: 0;
+            word-break: keep-all;
+            display: block;
+        }
+
+        .signatures-row {
+            display: flex;
+            gap: 10px;
+            border-radius: 8px;
+            margin: 6px auto;
+            flex-shrink: 0;
+            width: 85%;
+        }
+
+        .signature-box {
+            flex: 1;
+            border: 2px solid #666;
+            min-height: 90px;
+            padding: 5px;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .signature-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-align: center;
+            color: #333;
+            line-height: 1.2;
+            unicode-bidi: normal;
+            direction: rtl;
+            background: rgba(255,255,255,0.7);
+            padding: 1px 4px;
+            border-radius: 8px;
+            display: inline-block;
+            word-break: keep-all;
+        }
+
+        .full-signature {
+            min-height: 85px;
+            padding: 5px;
+            margin: 6px auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 42%;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: transparent;
+            border: 2px solid #666;
+        }
+
+        .requirements {
+            margin-top: 8px;
+            padding: 5px 0;
+            flex-shrink: 0;
+        }
+
+        .requirements-title {
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 3px;
+            color: #333;
+            text-align: right;
+            word-break: keep-all;
+        }
+
+        .requirements ol {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            list-style: none;
+            counter-reset: item;
+        }
+
+        .requirements li {
+            margin-bottom: 3px;
+            text-align: right;
+            position: relative;
+            padding-right: 20px;
+            counter-increment: item;
+            unicode-bidi: normal;
+            direction: rtl;
+            word-break: keep-all;
+        }
+
+        .requirements li::before {
+            content: counter(item) "-";
+            position: absolute;
+            right: 0;
+            font-weight: 700;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 20px;
+            font-size: 8px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           قواعد الطباعة - الاستمارة تظهر فقط هنا
+           ═══════════════════════════════════════════════════════════════ */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            .contact-section {
+                display: none !important;
+            }
+
+            .form-container {
+                display: flex !important;
+                box-shadow: none;
+                width: 190mm;
+                height: 277mm;
+                min-height: 277mm;
+                max-height: 277mm;
+                margin: 10mm auto;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+                overflow: hidden;
+            }
+
+            html, body {
+                height: 277mm;
+                overflow: hidden;
+            }
+
+            .content {
+                height: auto;
+                overflow: hidden;
+            }
+
+            .footer {
+                position: relative;
+                margin-top: 0;
+            }
+
+            .signatures-row, .requirements {
+                page-break-inside: avoid;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .form-title h1 {
+                text-align: center !important;
+            }
+        }
+
+        .pdf-export .controls {
+            display: none !important;
+        }
+
+        .bidi-fix {
+            unicode-bidi: bidi-override;
+            direction: rtl;
+        }
+
+        .form-title h1 {
+            font-feature-settings: normal !important;
+            -webkit-font-feature-settings: normal !important;
+        }
+    </style>
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         نموذج التواصل (Contact Form) - يظهر دائماً على الشاشة
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="contact-section" id="contactForm">
+        <div class="contact-title">📧 نموذج التواصل - استمارة تخويل العجلات</div>
+        <div class="contact-grid">
+            <div class="contact-field">
+                <label>الاسم الرباعي واللقب : *</label>
+                <input type="text" id="contactName" placeholder="أدخل اسمك الرباعي واللقب">
+            </div>
+            <div class="contact-field">
+                <label>اسم الدائرة : *</label>
+                <input type="text" id="contactDept" placeholder="اسم الدائرة">
+            </div>
+            <div class="contact-field">
+                <label>العنوان الوظيفي : *</label>
+                <input type="text" id="contactJob" placeholder="العنوان الوظيفي">
+            </div>
+            <div class="contact-field">
+                <label>رقم الموبايل : *</label>
+                <input type="tel" id="contactPhone" placeholder="07XX XXX XXXX">
+            </div>
+            <div class="contact-field">
+                <label>نوع العجلة : *</label>
+                <input type="text" id="contactVehicleType" placeholder="نوع العجلة">
+            </div>
+            <div class="contact-field">
+                <label>لون العجلة : *</label>
+                <input type="text" id="contactVehicleColor" placeholder="لون العجلة">
+            </div>
+            <div class="contact-field">
+                <label>سنة الصنع : *</label>
+                <input type="text" id="contactVehicleYear" placeholder="سنة الصنع">
+            </div>
+            <div class="contact-field">
+                <label>رقم العجلة : *</label>
+                <input type="text" id="contactVehicleNum" placeholder="رقم العجلة">
+            </div>
+            <div class="contact-field">
+                <label>رقم الشاصي : *</label>
+                <input type="text" id="contactChassis" placeholder="رقم الشاصي">
+            </div>
+            <div class="contact-field">
+                <label>نوع التخويل : *</label>
+                <select id="contactAuthType">
+                    <option value="">-- اختر --</option>
+                    <option value="govt">حكومي</option>
+                    <option value="private">خصوصي</option>
+                </select>
+            </div>
+            <div class="contact-field full-width">
+                <label>ملاحظات / رسالة :</label>
+                <textarea id="contactMessage" placeholder="اكتب ملاحظاتك أو رسالتك هنا..."></textarea>
+            </div>
+        </div>
+        <div class="contact-buttons">
+            <button class="contact-btn preview" id="btnPreview">👁️ معاينة الاستمارة</button>
+            <button class="contact-btn send" id="btnPDF">📄 حفظ كـ PDF</button>
+            <button class="contact-btn clear" id="btnClear">🗑️ مسح الكل</button>
+        </div>
+        <div class="success-message" id="successMsg">
+            ✅ تم حفظ الاستمارة بنجاح!
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Modal المعاينة - يظهر داخل نفس الصفحة
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="preview-overlay" id="previewOverlay">
+        <button class="preview-close" id="btnClosePreview">✕</button>
+        <div class="preview-container" id="previewContainer">
+            <!-- الاستمارة تُدرج هنا -->
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         الاستمارة الإلكترونية - مخفية على الشاشة، تظهر فقط عند الطباعة
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="form-container" id="form">
+        <div class="header">
+            <div class="header-en">
+                <div>Republic Of Iraq</div>
+                <div>Ministry Of Youth & Sport</div>
+                <div>Minister Office</div>
+                <div>Security Permits Department</div>
+            </div>
+
+            <div class="logo-container">
+                <img src="imag.jpg" alt="Logo" class="logo-img">
+            </div>
+
+            <div class="header-ar">
+                <div>جمهورية العراق</div>
+                <div>وزارة الشباب والرياضة</div>
+                <div>مكتب الوزير</div>
+                <div>قسم التصاريح الامنية</div>
+            </div>
+        </div>
+
+        <div class="form-title">
+            <h1>استمارة منح تخويل عجلات الموظفين</h1>
+        </div>
+
+        <div class="content">
+            <div class="watermark-container">
+                <img src="imag.jpg" alt="" class="watermark-logo">
+            </div>
+
+            <div class="top-section">
+                <div class="photo-box">
+                    <div class="photo-label">صورة شخصية</div>
+                    <input type="file" class="photo-input" accept="image/*" onchange="loadPhoto(this)">
+                    <img class="photo-preview" id="photoPreview">
+                </div>
+
+                <div class="fields-area">
+                    <div class="field-row row-fullname">
+                        <label class="field-label">اسم الرباعي واللقب :</label>
+                        <input type="text" class="field-input" id="formName" readonly>
+                    </div>
+
+                    <div class="field-row row-department">
+                        <label class="field-label">اسم الدائرة :</label>
+                        <input type="text" class="field-input" id="formDept" readonly>
+                    </div>
+
+                    <div class="row-job-mobile">
+                        <div class="job-group">
+                            <label class="field-label">العنوان الوظيفي :</label>
+                            <input type="text" class="field-input" id="formJob" readonly>
+                        </div>
+                        <div class="mobile-group">
+                            <label class="field-label">رقم الموبايل :</label>
+                            <input type="text" class="field-input" id="formPhone" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vehicle-row">
+                <div class="vehicle-group">
+                    <label class="field-label">نوع العجلة :</label>
+                    <input type="text" class="field-input" id="formVehicleType" readonly>
+                </div>
+                <div class="vehicle-group">
+                    <label class="field-label">لون العجلة :</label>
+                    <input type="text" class="field-input" id="formVehicleColor" readonly>
+                </div>
+                <div class="vehicle-group">
+                    <label class="field-label">سنة الصنع :</label>
+                    <input type="text" class="field-input" id="formVehicleYear" readonly>
+                </div>
+                <div class="vehicle-group">
+                    <label class="field-label">رقم العجلة :</label>
+                    <input type="text" class="field-input" id="formVehicleNum" readonly>
+                </div>
+            </div>
+
+            <div class="chassis-row">
+                <label class="field-label">رقم الشاصي :</label>
+                <input type="text" class="field-input" id="formChassis" readonly>
+            </div>
+
+            <div class="auth-section">
+                <label class="auth-label"> نوع تخويل العجـــلـــــة :</label>
+                <div class="auth-options">
+                    <div class="auth-option">
+                        <input type="checkbox" id="govt" disabled>
+                        <label for="govt">حكومي</label>
+                    </div>
+                    <div class="auth-option">
+                        <input type="checkbox" id="private" disabled>
+                        <label for="private">خصوصي</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notice-section">
+                <div class="notice-label">
+                    <strong>ملاحظة:</strong> نطاق سير العجلة الحكومية ونوع الواجب والمهام يتم تحديده من قبل (مديرعام الدائرة المعنية وبالقلم الخاص بالتوقيع)
+                </div>
+                <input type="text" class="scope-input" placeholder="=" readonly>
+            </div>
+
+            <div class="signatures-row">
+                <div class="signature-box">
+                    <div class="signature-title">توقيع صاحب الطلب</div>
+                    <div class="signature-line"></div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-title">ختم وتوقيع مديرعام دائرة الموظف</div>
+                    <div class="signature-line"></div>
+                </div>
+            </div>
+
+            <div class="signatures-row">
+                <div class="signature-box">
+                    <div class="signature-title">ختم وتوقيع شعبة الاليات (العجلة الحكومية)</div>
+                    <div class="signature-line"></div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-title">ختم وتوقيع مدير قسم التصاريح الامنية</div>
+                    <div class="signature-line"></div>
+                </div>
+            </div>
+
+            <div class="full-signature">
+                <div class="signature-title">توقيع مسؤول شعبة التصاريح</div>
+                <div class="signature-line"></div>
+            </div>
+
+            <div class="requirements">
+                <div class="requirements-title">ملاحظات :-</div>
+                <ol>
+                    <li>ارفاق كتاب رسمي من دائرة المستفيد ونسخه مصورة ملونة لكل من (هوية دائرة الموظف والمقبول الثاني + اجازة سوق + محضر استلام العجلة + سندية العجلة).</li>
+                    <li>سوف يعمل طلب التخويل في حالة عدم ارفاق اي نسخه مذكورة في فقرة رقم (١) او في حالة نقص في توقيع الطلب.</li>
+                    <li>يكون استلام استمارة طلب التخويل من مكتب التصاريح الامنية حصراً.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>SPO-QP-03-03,01-27 JAN.2023</span>
+            <span>HS\m//R</span>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // ربط الأزرار بالدوال بعد تحميل الصفحة
+        // ═══════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('btnPreview').addEventListener('click', function(e) {
+                e.preventDefault();
+                previewForm();
+            });
+            document.getElementById('btnPDF').addEventListener('click', function(e) {
+                e.preventDefault();
+                saveAsPDF();
+            });
+            document.getElementById('btnClear').addEventListener('click', function(e) {
+                e.preventDefault();
+                clearContact();
+            });
+            document.getElementById('btnClosePreview').addEventListener('click', function(e) {
+                e.preventDefault();
+                closePreview();
+            });
+
+            // إغلاق المعاينة بالنقر على الخلفية
+            document.getElementById('previewOverlay').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePreview();
+                }
+            });
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // نقل البيانات من نموذج التواصل إلى الاستمارة
+        // ═══════════════════════════════════════════════════════════════
+        function transferData() {
+            document.getElementById('formName').value = document.getElementById('contactName').value;
+            document.getElementById('formDept').value = document.getElementById('contactDept').value;
+            document.getElementById('formJob').value = document.getElementById('contactJob').value;
+            document.getElementById('formPhone').value = document.getElementById('contactPhone').value;
+            document.getElementById('formVehicleType').value = document.getElementById('contactVehicleType').value;
+            document.getElementById('formVehicleColor').value = document.getElementById('contactVehicleColor').value;
+            document.getElementById('formVehicleYear').value = document.getElementById('contactVehicleYear').value;
+            document.getElementById('formVehicleNum').value = document.getElementById('contactVehicleNum').value;
+            document.getElementById('formChassis').value = document.getElementById('contactChassis').value;
+
+            const authType = document.getElementById('contactAuthType').value;
+            document.getElementById('govt').checked = (authType === 'govt');
+            document.getElementById('private').checked = (authType === 'private');
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // التحقق من الحقول الإلزامية
+        // ═══════════════════════════════════════════════════════════════
+        function validateFields() {
+            const required = ['contactName', 'contactDept', 'contactJob', 'contactPhone',
+                            'contactVehicleType', 'contactVehicleColor', 'contactVehicleYear',
+                            'contactVehicleNum', 'contactChassis'];
+            for (let id of required) {
+                if (!document.getElementById(id).value.trim()) {
+                    alert('⚠️ يرجى ملء جميع الحقول الإلزامية (*)');
+                    document.getElementById(id).focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // معاينة الاستمارة - Modal داخل نفس الصفحة
+        // ═══════════════════════════════════════════════════════════════
+        function previewForm() {
+            if (!validateFields()) return;
+            transferData();
+
+            const formElement = document.getElementById('form');
+
+            // نسخ الاستمارة
+            const clone = formElement.cloneNode(true);
+            clone.style.display = 'flex';
+            clone.classList.add('preview-form');
+
+            // نسخ القيم يدوياً
+            clone.querySelector('#formName').value = document.getElementById('contactName').value;
+            clone.querySelector('#formDept').value = document.getElementById('contactDept').value;
+            clone.querySelector('#formJob').value = document.getElementById('contactJob').value;
+            clone.querySelector('#formPhone').value = document.getElementById('contactPhone').value;
+            clone.querySelector('#formVehicleType').value = document.getElementById('contactVehicleType').value;
+            clone.querySelector('#formVehicleColor').value = document.getElementById('contactVehicleColor').value;
+            clone.querySelector('#formVehicleYear').value = document.getElementById('contactVehicleYear').value;
+            clone.querySelector('#formVehicleNum').value = document.getElementById('contactVehicleNum').value;
+            clone.querySelector('#formChassis').value = document.getElementById('contactChassis').value;
+
+            const authType = document.getElementById('contactAuthType').value;
+            clone.querySelector('#govt').checked = (authType === 'govt');
+            clone.querySelector('#private').checked = (authType === 'private');
+
+            // عرض في Modal
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = '';
+            previewContainer.appendChild(clone);
+
+            const overlay = document.getElementById('previewOverlay');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // التمرير لأعلى الـ Modal
+            overlay.scrollTop = 0;
+        }
+
+        function closePreview() {
+            document.getElementById('previewOverlay').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // حفظ كـ PDF
+        // ═══════════════════════════════════════════════════════════════
+        function saveAsPDF() {
+            if (!validateFields()) return;
+            transferData();
+
+            const element = document.getElementById('form');
+            element.classList.add('pdf-export');
+
+            const originalDisplay = element.style.display;
+            element.style.display = 'flex';
+
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: 'استمارة_تخويل_العجلات.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    width: 720,
+                    height: 1040,
+                    allowTaint: true,
+                    foreignObjectRendering: false,
+                    onclone: function(clonedDoc) {
+                        const allElements = clonedDoc.querySelectorAll('*');
+                        allElements.forEach(el => {
+                            el.style.wordBreak = 'keep-all';
+                            el.style.wordWrap = 'normal';
+                            el.style.overflowWrap = 'normal';
+                            if (el.textContent && /[؀-ۿ]/.test(el.textContent)) {
+                                el.style.fontFamily = 'Cairo, Arial, sans-serif';
+                                el.style.letterSpacing = '0';
+                            }
+                        });
+
+                        const h1 = clonedDoc.querySelector('.form-title h1');
+                        if (h1) {
+                            h1.style.cssText = 'font-size: 15px; font-weight: 800; color: #333; text-align: center; font-family: Cairo, Arial, sans-serif; letter-spacing: 0; word-break: keep-all; white-space: nowrap;';
+                        }
+                    }
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait',
+                    putOnlyUsedFonts: true,
+                    floatPrecision: 16
+                }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.remove('pdf-export');
+                element.style.display = originalDisplay;
+
+                const successMsg = document.getElementById('successMsg');
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 4000);
+            }).catch(err => {
+                console.error('Error:', err);
+                alert('حدث خطأ في حفظ PDF. يرجى المحاولة مرة أخرى');
+                element.classList.remove('pdf-export');
+                element.style.display = originalDisplay;
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // مسح جميع البيانات
+        // ═══════════════════════════════════════════════════════════════
+        function clearContact() {
+            if(confirm('هل أنت متأكد من مسح جميع البيانات؟')) {
+                document.getElementById('contactName').value = '';
+                document.getElementById('contactDept').value = '';
+                document.getElementById('contactJob').value = '';
+                document.getElementById('contactPhone').value = '';
+                document.getElementById('contactVehicleType').value = '';
+                document.getElementById('contactVehicleColor').value = '';
+                document.getElementById('contactVehicleYear').value = '';
+                document.getElementById('contactVehicleNum').value = '';
+                document.getElementById('contactChassis').value = '';
+                document.getElementById('contactAuthType').value = '';
+                document.getElementById('contactMessage').value = '';
+                document.getElementById('successMsg').style.display = 'none';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // دوال الاستمارة (للصورة فقط)
+        // ═══════════════════════════════════════════════════════════════
+        function loadPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('photoPreview').src = e.target.result;
+                    document.getElementById('photoPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>
