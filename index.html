@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نموذج تواصل - استمارة تخويل العجلات</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title></title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
 
@@ -18,7 +17,7 @@
             font-family: 'Cairo', sans-serif;
             background: linear-gradient(135deg, #2a3d5a 0%, #1a2d4a 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 5px;
         }
 
         /* ===== CONTACT FORM STYLES ===== */
@@ -205,7 +204,7 @@
         /* ===== FORM DISPLAY SECTION (Hidden by default) ===== */
         .form-display-section {
             display: none;
-            margin-top: 30px;
+            margin-top: 5px;
         }
 
         .form-display-section.active {
@@ -312,8 +311,8 @@
 
         .form-title {
             text-align: center;
-            padding: 4px;
-            margin: 3px 15px 2px 15px;
+            padding: 2px;
+            margin: 1px 15px 2px 15px;
             border-bottom: 2px solid #ccc;
             flex-shrink: 0;
         }
@@ -329,7 +328,7 @@
         }
 
         .content {
-            padding: 10px 20px 5px 20px;
+            padding: 5px 20px 5px 20px;
             position: relative;
             flex: 1;
             display: flex;
@@ -714,17 +713,12 @@
             transition: all 0.3s;
         }
 
-        .form-btn-pdf {
-            background: linear-gradient(145deg, #2a3d5a 0%, #1a2d4a 100%);
-            color: white;
-        }
-
         .form-btn-print {
             background: #5a6a7a;
             color: white;
         }
 
-        .form-btn:hover {
+        .form-btn-print:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
@@ -784,9 +778,15 @@
                 text-align: center !important;
             }
         }
-
-        .pdf-export .form-controls {
-            display: none !important;
+    
+        /* Hide page title when printing */
+        @media print {
+            title {
+                display: none !important;
+            }
+            head {
+                display: none !important;
+            }
         }
     </style>
 <base target="_blank">
@@ -1034,7 +1034,6 @@
         </div>
 
         <div class="form-controls">
-            <button class="form-btn form-btn-pdf" onclick="saveAsPDF()">📄 حفظ كـ PDF</button>
             <button class="form-btn form-btn-print" onclick="exportPDF()">🖨️ طباعة</button>
         </div>
     </div>
@@ -1049,8 +1048,8 @@
         });
 
         function validateForm() {
-            const requiredFields = ['fullname', 'department', 'jobtitle', 'mobile',
-                                   'vehicleType', 'vehicleColor', 'vehicleYear',
+            const requiredFields = ['fullname', 'department', 'jobtitle', 'mobile', 
+                                   'vehicleType', 'vehicleColor', 'vehicleYear', 
                                    'vehicleNumber', 'chassisNumber'];
 
             let isValid = true;
@@ -1173,59 +1172,6 @@
                 document.querySelector('.form-display-title').style.display = 'block';
                 document.querySelector('.form-controls').style.display = 'flex';
             }, 1000);
-        }
-
-        function saveAsPDF() {
-            const element = document.getElementById('form');
-            element.classList.add('pdf-export');
-
-            const opt = {
-                margin: [10, 10, 10, 10],
-                filename: 'استمارة_تخويل_العجلات.pdf',
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                    width: 720,
-                    height: 1040,
-                    allowTaint: true,
-                    foreignObjectRendering: false,
-                    onclone: function(clonedDoc) {
-                        const allElements = clonedDoc.querySelectorAll('*');
-                        allElements.forEach(el => {
-                            el.style.wordBreak = 'keep-all';
-                            el.style.wordWrap = 'normal';
-                            el.style.overflowWrap = 'normal';
-                            if (el.textContent && /[؀-ۿ]/.test(el.textContent)) {
-                                el.style.fontFamily = 'Cairo, Arial, sans-serif';
-                                el.style.letterSpacing = '0';
-                            }
-                        });
-
-                        const h1 = clonedDoc.querySelector('.form-title h1');
-                        if (h1) {
-                            h1.style.cssText = 'font-size: 15px; font-weight: 800; color: #333; text-align: center; font-family: Cairo, Arial, sans-serif; letter-spacing: 0; word-break: keep-all; white-space: nowrap;';
-                        }
-                    }
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
-                    orientation: 'portrait',
-                    putOnlyUsedFonts: true,
-                    floatPrecision: 16
-                }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.classList.remove('pdf-export');
-            }).catch(err => {
-                console.error('Error:', err);
-                alert('حدث خطأ في حفظ PDF. يرجى استخدام خيار الطباعة');
-                element.classList.remove('pdf-export');
-            });
         }
     </script>
 </body>
